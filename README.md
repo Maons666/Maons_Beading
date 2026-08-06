@@ -159,7 +159,7 @@ node test-core.mjs # 核心算法单元测试（70 个测例）
 
 ## 📄 License
 
-MIT © [Maonster](https://github.com/Maons666)
+MIT © [Maons666](https://github.com/Maons666)
 
 <div align="center">
 
