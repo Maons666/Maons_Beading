@@ -1,0 +1,18 @@
+{
+  "name": "beading-pattern-maker",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "本地拼豆图纸生成器 · 图片转拼豆图 · 用豆统计 · 多色板对照",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "jspdf": "^4.2.1"
+  }
+}

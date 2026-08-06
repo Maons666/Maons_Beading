@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>拼豆图纸生成器</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="app-title">
+        <h1>拼豆图纸生成器</h1>
+        <p class="subtitle">图片到拼豆，一站式搞定。</p>
+      </div>
+      <div class="author-badge" aria-label="作者">
+        <span class="author-by">by</span>
+        <span class="author-name">Maonster</span>
+      </div>
+    </header>
+
+
+    <main class="app-main">
+      <!-- 左：参数面板 -->
+      <aside class="panel panel-settings">
+        <div class="panel-header">图片上传与设置</div>
+        <div class="panel-body">
+        <section class="panel-section">
+          <h2>1. 上传图片</h2>
+          <div id="dropzone" class="dropzone">
+            <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp" hidden />
+            <div class="dropzone-hint">
+              <div class="dropzone-icon">＋</div>
+              <div>点击或拖拽图片到此处</div>
+              <div class="hint-small">PNG / JPG / WebP · ≤ 10MB</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <h2>2. 图纸尺寸</h2>
+          <div class="dimension-group">
+            <div class="dimension-inputs">
+              <div class="form-row">
+                <label>宽 (豆)</label>
+                <input type="number" id="grid-w" min="8" max="200" value="58" />
+              </div>
+              <div class="form-row">
+                <label>高 (豆)</label>
+                <input type="number" id="grid-h" min="8" max="200" value="58" />
+              </div>
+            </div>
+            <button type="button" id="aspect-lock-btn" class="lock-btn locked"
+                    title="锁定长宽比：勾选后改宽/高，另一边按比例同步">
+              <span class="lock-icon">🔗</span>
+            </button>
+          </div>
+          <div class="form-row">
+            <label>适配方式</label>
+            <select id="fit-mode">
+              <option value="cover">居中裁剪 (cover)</option>
+              <option value="contain">保持比例留白 (contain)</option>
+              <option value="stretch">拉伸填满 (stretch)</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <h2>3. 色板 & 选项</h2>
+          <div class="form-row">
+            <label>色板</label>
+            <select id="palette-select">
+              <!-- 由 JS 填充 -->
+            </select>
+          </div>
+          <div class="form-row">
+            <label>颜色数上限</label>
+            <input type="number" id="max-colors" min="2" max="200" value="24" />
+          </div>
+          <div class="form-row">
+            <label>色差算法</label>
+            <select id="algo-select">
+              <option value="ciede2000">CIEDE2000（精准，推荐）</option>
+              <option value="cie76">CIE76（3–5× 更快）</option>
+            </select>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="skip-transparent" checked />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span class="toggle-label">透明像素跳过</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="dither-toggle" />
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span class="toggle-label">启用抖动 (Floyd–Steinberg)</span>
+          </label>
+          <div class="form-hint dither-hint" id="dither-hint">
+            抖动通过邻近色交错模拟中间色，仅适合大幅作品远看；
+            小图开启会让像素显得杂乱，且用豆种类变多。
+          </div>
+          <div class="form-row">
+            <label>深色线间距</label>
+            <input type="number" id="heavy-grid" min="0" max="50" value="5" title="色号图/网格图上每 N 格加一条深色线；0 = 关闭" />
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <button id="btn-generate" class="btn btn-primary" disabled>生成图纸</button>
+        </section>
+        </div>
+      </aside>
+
+      <!-- 中：预览 -->
+      <section class="panel panel-preview">
+        <div class="preview-toolbar">
+          <div class="preview-title">您的拼豆色号图</div>
+          <div class="preview-info">
+            <span class="hover-cell" id="hover-cell"></span>
+            <span class="hover-help">悬停查看格子 · 滚轮缩放 · 双击复位 · 右键拖拽平移</span>
+          </div>
+        </div>
+        <div class="preview-stage" id="preview-stage">
+          <div class="canvas-wrap" id="canvas-wrap" hidden>
+            <canvas id="preview-canvas"></canvas>
+          </div>
+          <div class="empty-hint" id="empty-hint">
+            <div class="empty-hint-title">还没有图纸</div>
+            <div class="empty-hint-sub">左侧上传图片并点击「生成图纸」</div>
+          </div>
+        </div>
+
+        <!-- 编辑工具栏（生成图纸后启用） -->
+        <div class="edit-toolbar" id="edit-toolbar" hidden>
+          <div class="tool-group" role="group" aria-label="编辑工具">
+            <button class="tool-btn" id="tool-brush" data-tool="brush" title="笔画：点击或按住拖动">
+              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                   fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M15.825.12a.5.5 0 0 1 .132.584c-1.53 3.43-4.743 8.17-7.095 10.64a6.067 6.067 0 0 1-2.373 1.534c-.018.227-.06.538-.16.868-.201.659-.667 1.479-1.708 1.74a8.118 8.118 0 0 1-3.078.132 3.659 3.659 0 0 1-.562-.135 1.382 1.382 0 0 1-.466-.247.714.714 0 0 1-.204-.288.622.622 0 0 1 .004-.443c.095-.245.316-.38.461-.452.394-.197.625-.453.867-.826.095-.144.184-.297.287-.472l.117-.198c.151-.255.326-.54.546-.848.528-.739 1.201-.925 1.746-.896.126.007.243.025.348.048.062-.172.142-.38.238-.608.261-.619.658-1.419 1.187-2.069 2.176-2.67 6.18-6.206 9.117-8.104a.5.5 0 0 1 .596.04z"/>
+              </svg>
+              笔画
+            </button>
+            <button class="tool-btn" id="tool-fill" data-tool="fill" title="填充：把相邻的同色格改为目标色">
+              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                   fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M2.522 5H2a.5.5 0 0 1-.494-.574l.573-3.822A.5.5 0 0 1 2.573 0h10.854a.5.5 0 0 1 .494.404l.573 3.822A.5.5 0 0 1 14 5h-.522A5.023 5.023 0 0 1 14 6.5v5a5 5 0 1 1-12 0v-5c0-.532.077-1.045.522-1.5zM3.409 1l-.428 2.856L3.523 4H12.477l.542-.144L12.591 1H3.409z"/>
+              </svg>
+              填充
+            </button>
+          </div>
+          <div class="tool-divider"></div>
+          <button class="tool-btn" id="tool-picker" title="吸色：点击后再点画布任一格 · 快捷键 Alt+点击">
+            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                 fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M13.354.646a1.207 1.207 0 0 0-1.708 0L8.5 3.793l-.646-.647a.5.5 0 1 0-.708.708L8.293 5l-7.147 7.146A.5.5 0 0 0 1 12.5v1.793l-.854.853a.5.5 0 1 0 .708.707L1.707 15H3.5a.5.5 0 0 0 .354-.146L11 7.707l1.146 1.147a.5.5 0 0 0 .708-.708l-.647-.646 3.147-3.146a1.207 1.207 0 0 0 0-1.708zM2 12.707l7-7L10.293 7l-7 7H2v-1.293z"/>
+            </svg>
+            吸色
+          </button>
+          <div class="color-picker-wrap">
+            <button class="color-picker-btn" id="color-picker-btn" title="点击选择目标颜色（也可 Alt+点击画布吸色）">
+              <span class="swatch" id="target-swatch"></span>
+              <span class="color-picker-label placeholder" id="color-picker-label">选择目标颜色</span>
+              <span class="caret">▾</span>
+            </button>
+            <!-- 色板下拉菜单 -->
+            <div class="palette-menu" id="palette-menu">
+              <div class="palette-menu-header">
+                <input type="text" class="palette-search" id="palette-search"
+                       placeholder="搜索色号或名称…" />
+              </div>
+              <div class="palette-list" id="palette-list"></div>
+            </div>
+          </div>
+          <div class="tool-divider"></div>
+          <button class="tool-btn" id="undo-btn" title="撤销（Ctrl/Cmd + Z）" disabled>
+            ↶ 撤销
+          </button>
+          <div class="edit-hint" id="edit-hint">
+            选一个工具和目标色后开始编辑 · Alt+点击画布可吸色
+          </div>
+        </div>
+
+      </section>
+
+      <!-- 右：统计 & 导出 -->
+      <aside class="panel panel-stats">
+        <div class="panel-header">图纸统计与导出</div>
+        <div class="panel-body">
+        <section class="panel-section">
+          <h2>用豆统计</h2>
+          <div class="stats-summary" id="stats-summary">— · —</div>
+          <div class="stats-table-wrap">
+            <table class="stats-table" id="stats-table">
+              <thead>
+                <tr><th></th><th>色号</th><th>名称</th><th>数量</th><th>占比</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <h2>导出</h2>
+          <div class="export-row">
+            <button class="btn btn-accent" id="btn-export-pdf" disabled>导出 PDF（A4 图纸集）</button>
+            <button class="btn" id="btn-export-png-codes" disabled>导出 PNG（色号图）</button>
+            <button class="btn" id="btn-export-csv" disabled>导出 CSV（用豆清单）</button>
+          </div>
+        </section>
+        </div>
+      </aside>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
