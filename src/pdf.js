@@ -10,7 +10,7 @@ const MARGIN = 10
 
 // 分块尺寸
 const TILE_W = 40
-const TILE_H = 55
+const TILE_H = 50
 
 // —— 入口 —— //
 export function exportPdf({
