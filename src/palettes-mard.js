@@ -126,3 +126,11 @@ export const MARD_291 = RAW.map(([code, hex]) => {
     tags: series ? [`${series}系列`] : [],
   }
 })
+
+// MARD 221 色 = 标准系列（A/B/C/D/E/F/G/H/M）
+// 是官方最基础、也最常见的一套，不含 P/Q/R/T/Y/ZG 等扩展系列。
+const STANDARD_SERIES = new Set(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'M'])
+export const MARD_221 = MARD_291.filter(c => {
+  const s = /^([A-Z]+)/.exec(c.code)?.[1]
+  return s && STANDARD_SERIES.has(s)
+})

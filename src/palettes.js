@@ -4,7 +4,7 @@
 // 后续可通过新增 palette 对象扩展。
 //
 // 其他色板从独立模块导入：
-import { MARD_291 }  from './palettes-mard.js'
+import { MARD_291, MARD_221 } from './palettes-mard.js'
 import { PERLER }    from './palettes-perler.js'
 import { HAMA_MIDI } from './palettes-hama.js'
 import { ARTKAL_S }  from './palettes-artkal.js'
@@ -100,6 +100,12 @@ export const PALETTES = {
     name: 'MARD 完整 291 色',
     description: 'MARD 官方 15 系列全色板（A–H, M, P, Q, R, T, Y, ZG）· 来源 pixel-beads.com',
     colors: MARD_291,
+  },
+  'mard-221': {
+    id: 'mard-221',
+    name: 'MARD 标准 221 色',
+    description: 'MARD 官方标准系列（A–H, M）· 最常见的基础套装 · 不含 P/Q/R/T/Y/ZG 扩展系列',
+    colors: MARD_221,
   },
   'perler-57': {
     id: 'perler-57',
