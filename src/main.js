@@ -19,6 +19,7 @@ const state = {
   skipTransparent: true,
   dither: false,
   heavyGrid: 5,
+  exportName: '您的拼豆',  // 导出文件名前缀（用户可改）
   aspectLock: true,     // 默认锁定
   imgAspect: null,      // 上传后记录（去透明边后的）图像长宽比 = w/h
   // —— 编辑相关 —— //
@@ -76,6 +77,8 @@ const paletteList = $('#palette-list')
 const btnExportPngCodes = $('#btn-export-png-codes')
 const btnExportCsv = $('#btn-export-csv')
 const btnExportPdf = $('#btn-export-pdf')
+const exportNameInput = $('#export-name')
+const exportNamePreview = $('#export-name-preview')
 const previewStage = $('#preview-stage')
 const canvasWrap = $('#canvas-wrap')
 
@@ -171,6 +174,7 @@ function autoPresetGridFromImage(img) {
   state.gridH = newH
   gridWInput.value = newW
   gridHInput.value = newH
+  updateExportNamePreview()
 }
 
 function updateDropzonePreview(file, img) {
@@ -222,12 +226,14 @@ function bindSettings() {
     state.gridW = v
     gridWInput.value = v
     if (state.aspectLock) syncPartner('h')
+    updateExportNamePreview()
   })
   gridHInput.addEventListener('change', () => {
     const v = clamp(parseInt(gridHInput.value, 10), 8, 200)
     state.gridH = v
     gridHInput.value = v
     if (state.aspectLock) syncPartner('w')
+    updateExportNamePreview()
   })
   aspectLockBtn.addEventListener('click', () => {
     state.aspectLock = !state.aspectLock
@@ -277,6 +283,41 @@ function syncPartner(which) {
     state.gridW = nw
     gridWInput.value = nw
   }
+  updateExportNamePreview()
+}
+
+// ---- 导出文件名 ----
+const DEFAULT_EXPORT_NAME = '您的拼豆'
+// 去掉各平台文件名里的非法字符（/ \ : * ? " < > |）和首尾空白/点
+function sanitizeFilename(s) {
+  return String(s)
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s.]+|[\s.]+$/g, '')
+    .slice(0, 60)
+}
+// kind: '图纸集' | '色号图' | '用豆统计'；ext: 'pdf' | 'png' | 'csv'
+function buildExportFilename(kind, ext) {
+  const prefix = sanitizeFilename(state.exportName) || DEFAULT_EXPORT_NAME
+  return `${prefix}-${state.gridW}×${state.gridH}-${kind}.${ext}`
+}
+function updateExportNamePreview() {
+  exportNamePreview.textContent =
+    `→ ${buildExportFilename('图纸集', 'pdf')}（PNG / CSV 同前缀）`
+}
+function bindExportName() {
+  exportNameInput.addEventListener('input', () => {
+    state.exportName = exportNameInput.value
+    updateExportNamePreview()
+  })
+  // 失焦时把清理后的结果回填，让用户看到实际生效的名字
+  exportNameInput.addEventListener('blur', () => {
+    const clean = sanitizeFilename(exportNameInput.value)
+    state.exportName = clean || DEFAULT_EXPORT_NAME
+    exportNameInput.value = state.exportName
+    updateExportNamePreview()
+  })
+  updateExportNamePreview()
 }
 
 // ---- 悬停信息 ----
@@ -389,11 +430,11 @@ function enableExportButtons(enable) {
 // CSS transform 只影响显示、不影响 canvas 像素，导出无需处理缩放
 btnExportPngCodes.addEventListener('click', () => {
   if (!state.indexMap) return
-  downloadCanvasPng(canvas, `您的拼豆-${state.gridW}×${state.gridH}-色号图.png`)
+  downloadCanvasPng(canvas, buildExportFilename('色号图', 'png'))
 })
 btnExportCsv.addEventListener('click', () => {
   if (!state.stats) return
-  downloadCsv(state.stats.rows, state.stats.total, `您的拼豆-${state.gridW}×${state.gridH}-用豆统计.csv`)
+  downloadCsv(state.stats.rows, state.stats.total, buildExportFilename('用豆统计', 'csv'))
 })
 btnExportPdf.addEventListener('click', async () => {
   if (!state.indexMap) return
@@ -411,7 +452,7 @@ btnExportPdf.addEventListener('click', async () => {
       stats: state.stats,
       paletteName: PALETTES[state.paletteId].name,
       algo: state.algo,
-      filename: `您的拼豆-${state.gridW}×${state.gridH}-图纸集.pdf`,
+      filename: buildExportFilename('图纸集', 'pdf'),
     })
   } catch (e) {
     console.error(e)
@@ -785,3 +826,4 @@ initPaletteSelect()
 bindUpload()
 bindSettings()
 bindHover()
+bindExportName()

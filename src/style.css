@@ -178,6 +178,7 @@ body {
   font-size: 13px;
 }
 .form-row input[type="number"],
+.form-row input[type="text"],
 .form-row select {
   flex: 1;
   min-width: 0;             /* 关键：允许 flex 子项被压缩到内容宽度以下 */
@@ -194,9 +195,21 @@ body {
   text-overflow: ellipsis;
 }
 .form-row input[type="number"]:focus,
+.form-row input[type="text"]:focus,
 .form-row select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* 导出文件名预览：显示最终会保存成什么名字 */
+.export-name-preview {
+  margin: -2px 0 10px 86px;   /* 与输入框左缘对齐（label 76px + gap 10px） */
+  font-size: 11.5px;
+  color: var(--text-3);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .form-row-check { align-items: center; }
 .form-row-check label {

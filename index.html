@@ -199,6 +199,12 @@
 
         <section class="panel-section">
           <h2>导出</h2>
+          <div class="form-row">
+            <label>文件名</label>
+            <input type="text" id="export-name" value="您的拼豆" placeholder="您的拼豆"
+                   maxlength="60" spellcheck="false" />
+          </div>
+          <div class="export-name-preview" id="export-name-preview"></div>
           <div class="export-row">
             <button class="btn btn-accent" id="btn-export-pdf" disabled>导出 PDF（A4 图纸集）</button>
             <button class="btn" id="btn-export-png-codes" disabled>导出 PNG（色号图）</button>
