@@ -95,17 +95,17 @@ const COMMON_72 = [
 // —— 色板注册表 ——
 // 追加新色板：新增一个模块，import 后按下面结构注册即可。
 export const PALETTES = {
-  'mard-291': {
-    id: 'mard-291',
-    name: 'MARD 完整 291 色',
-    description: 'MARD 官方 15 系列全色板（A–H, M, P, Q, R, T, Y, ZG）· 来源 pixel-beads.com',
-    colors: MARD_291,
-  },
   'mard-221': {
     id: 'mard-221',
     name: 'MARD 标准 221 色',
     description: 'MARD 官方标准系列（A–H, M）· 最常见的基础套装 · 不含 P/Q/R/T/Y/ZG 扩展系列',
     colors: MARD_221,
+  },
+  'mard-291': {
+    id: 'mard-291',
+    name: 'MARD 完整 291 色',
+    description: 'MARD 官方 15 系列全色板（A–H, M, P, Q, R, T, Y, ZG）· 来源 pixel-beads.com',
+    colors: MARD_291,
   },
   'perler-57': {
     id: 'perler-57',
@@ -133,4 +133,4 @@ export const PALETTES = {
   },
 }
 
-export const DEFAULT_PALETTE_ID = 'mard-291'
+export const DEFAULT_PALETTE_ID = 'mard-221'
