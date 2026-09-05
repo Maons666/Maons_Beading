@@ -519,6 +519,7 @@ body {
 /* 编辑模式下画布的鼠标形状 */
 .canvas-wrap.tool-brush #preview-canvas { cursor: crosshair; }
 .canvas-wrap.tool-fill  #preview-canvas { cursor: cell; }
+.canvas-wrap.tool-eraser #preview-canvas { cursor: not-allowed; }
 .canvas-wrap.picking    #preview-canvas { cursor: copy; }
 /* 右键拖动时全局用 grabbing 光标 */
 .preview-stage.panning,

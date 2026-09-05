@@ -15,7 +15,7 @@
 
 ![vite](https://img.shields.io/badge/Vite-5.x-646cff?logo=vite&logoColor=white)
 ![license](https://img.shields.io/badge/license-MIT-green)
-![tests](https://img.shields.io/badge/tests-70%2F70%20passing-success)
+![tests](https://img.shields.io/badge/tests-79%2F79%20passing-success)
 ![size](https://img.shields.io/badge/gzip-~150KB-blue)
 
 </div>
@@ -31,7 +31,7 @@
 - 一键**锁定长宽比**，改宽自动改高
 
 ### 🎨 色板匹配
-- 内置 **5 套主流色板**：MARD 291 · Perler 57 · Hama Midi 53 · Artkal S 159 · 国产常用 74
+- 内置 **6 套主流色板**：MARD 221 · MARD 291 · Perler 57 · Hama Midi 53 · Artkal S 159 · 国产常用 74
 - 色差算法可切换：
   - **CIEDE2000**（默认，感知精准，处理蓝色/皮肤色更好）
   - **CIE76**（快 ~70×，适合超大图纸预览）
@@ -41,6 +41,7 @@
 ### ✏️ 图纸编辑
 - **笔画**：点击 / 按住拖动，把格子刷成目标色
 - **填充**：点一下，把相邻的同色区域整片改色（flood-fill）
+- **擦除**：点击 / 按住拖动，把格子变为无色（留白）
 - **吸色**：从画布任一格拾取颜色到目标色（按钮 or `Alt+点击` 快捷键）
 - **撤销**：`Ctrl/Cmd + Z`，最多回退 100 步
 - **色板下拉搜索**：按色号或名称过滤，291 色也能秒选
@@ -52,9 +53,10 @@
 - **鼠标悬停**显示格子坐标、色号、名称
 
 ### 📤 导出
+- **自定义文件名前缀**，尺寸与类型后缀自动拼接，输入时实时预览
 - **PDF · A4 图纸集**（矢量，可无限缩放清晰）
   - **概况页**：整图色块预览 + 用豆统计表（多栏，含品牌信息）
-  - **分块图纸页**：每 40 × 55 一页，含色号 · 网格 · 深色分隔线 · **右上角缩略图**高亮当前块的位置
+  - **分块图纸页**：每 40 × 50 一页，含色号 · 网格 · 深色分隔线 · **右上角缩略图**高亮当前块的位置
 - **PNG · 色号图**：一张图看清所有色号布局
 - **CSV · 用豆清单**：Excel 直接打开，中文正常，含 BOM
 
@@ -69,7 +71,8 @@
 
 | 色板 | 色数 | 特点 | 数据来源 |
 |---|---|---|---|
-| **MARD 291** _(默认)_ | 291 | 国内最全，15 系列，覆盖全色相 | [pixel-beads.com](https://www.pixel-beads.com/zh/mard-bead-color-chart) |
+| **MARD 标准 221** _(默认)_ | 221 | 官方标准系列 A–H + M，最常见的基础套装 | [pixel-beads.com](https://www.pixel-beads.com/zh/mard-bead-color-chart) |
+| MARD 完整 291 | 291 | 在 221 基础上加 P/Q/R/T/Y/ZG 扩展系列，覆盖全色相 | [pixel-beads.com](https://www.pixel-beads.com/zh/mard-bead-color-chart) |
 | Perler 57 | 57 | 含中文色名，色调偏柔和 | [pixel-beads.com](https://www.pixel-beads.com/zh/perler-bead-color-chart) |
 | Hama Midi 53 | 53 | 欧洲工业标准（源站无色名，用色号占位） | [pixel-beads.com](https://www.pixel-beads.com/zh/hama-bead-color-chart) |
 | Artkal S 159 | 159 | 英文色名，5 mm 中豆 | [pixel-beads.com](https://www.pixel-beads.com/zh/artkal-bead-color-chart) |
@@ -91,7 +94,7 @@ npm run dev        # 本地开发，自动打开 http://localhost:5173
 ```bash
 npm run build      # 打包生产版本到 dist/
 npm run preview    # 本地预览打包结果
-node test-core.mjs # 核心算法单元测试（70 个测例）
+node test-core.mjs # 核心算法单元测试（79 个测例）
 ```
 
 ---
@@ -127,12 +130,11 @@ node test-core.mjs # 核心算法单元测试（70 个测例）
     ├── render.js             # Canvas 图纸渲染
     ├── export.js             # PNG / CSV 导出
     ├── pdf.js                # PDF 导出（概况页 + 分块图纸页）
-    ├── palettes.js           # 色板注册表
-    ├── palettes-mard.js      # MARD 291 色
+    ├── palettes.js           # 色板注册表 + 国产常用 74 色
+    ├── palettes-mard.js      # MARD 291 完整色板 + 221 标准子集
     ├── palettes-perler.js    # Perler 57 色
     ├── palettes-hama.js      # Hama Midi 53 色
-    ├── palettes-artkal.js    # Artkal S 159 色
-    └── palettes-common.js    # 国产常用 74 色（在 palettes.js 中直接内联）
+    └── palettes-artkal.js    # Artkal S 159 色
 ```
 
 ---

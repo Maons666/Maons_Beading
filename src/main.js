@@ -29,6 +29,7 @@ const state = {
   history: [],          // 撤销栈：Int32Array 快照
   isPainting: false,    // 笔画拖拽中
   paintedThisStroke: null,  // 本次拖拽已绘的格子集（Set of "x,y" 字符串）
+  strokeValue: null,        // 本次拖拽写入的值：色号索引，擦除时为 -1
   // 生成结果
   indexMap: null,
   paletteLab: null,
@@ -63,6 +64,7 @@ const statsSummary = $('#stats-summary')
 const editToolbar = $('#edit-toolbar')
 const toolBrushBtn = $('#tool-brush')
 const toolFillBtn = $('#tool-fill')
+const toolEraserBtn = $('#tool-eraser')
 const toolPickerBtn = $('#tool-picker')
 const colorPickerBtn = $('#color-picker-btn')
 const targetSwatch = $('#target-swatch')
@@ -372,8 +374,9 @@ function btnGenerateSetup() {
       state.pickingColor = false
       toolBrushBtn.classList.remove('active')
       toolFillBtn.classList.remove('active')
+      toolEraserBtn.classList.remove('active')
       toolPickerBtn.classList.remove('active')
-      canvasWrap.classList.remove('tool-brush', 'tool-fill', 'picking')
+      canvasWrap.classList.remove('tool-brush', 'tool-fill', 'tool-eraser', 'picking')
       buildPaletteMenu()
       updateColorPickerLabel()
       activateEditToolbar()
@@ -571,12 +574,15 @@ function setTool(tool) {
   state.editTool = tool
   toolBrushBtn.classList.toggle('active', tool === 'brush')
   toolFillBtn.classList.toggle('active', tool === 'fill')
+  toolEraserBtn.classList.toggle('active', tool === 'eraser')
   canvasWrap.classList.toggle('tool-brush', tool === 'brush')
   canvasWrap.classList.toggle('tool-fill', tool === 'fill')
+  canvasWrap.classList.toggle('tool-eraser', tool === 'eraser')
   updateEditHint()
 }
 toolBrushBtn.addEventListener('click', () => setTool(state.editTool === 'brush' ? null : 'brush'))
 toolFillBtn.addEventListener('click', () => setTool(state.editTool === 'fill' ? null : 'fill'))
+toolEraserBtn.addEventListener('click', () => setTool(state.editTool === 'eraser' ? null : 'eraser'))
 undoBtn.addEventListener('click', undo)
 
 // —— 吸色按钮 —— //
@@ -619,6 +625,11 @@ function updateEditHint() {
     editHint.textContent = '吸色模式：点击画布任一格子吸取该色 · Esc 取消'
     return
   }
+  // 擦除不需要目标色，单独提示
+  if (state.editTool === 'eraser') {
+    editHint.textContent = '✔ 点击 / 按住拖动画布 · 把格子擦成无色（无需选色）'
+    return
+  }
   const hasTool = !!state.editTool
   const hasColor = state.editColorIdx != null
   if (!hasTool && !hasColor) {
@@ -626,7 +637,7 @@ function updateEditHint() {
   } else if (hasTool && !hasColor) {
     editHint.textContent = '⚠ 还需选择目标颜色 · 点击右边色卡按钮或用「吸色」'
   } else if (!hasTool && hasColor) {
-    editHint.textContent = '⚠ 还需选择工具 · 点击左边「笔画」或「填充」'
+    editHint.textContent = '⚠ 还需选择工具 · 点击左边「笔画」「填充」或「擦除」'
   } else {
     editHint.textContent = state.editTool === 'brush'
       ? '✔ 点击 / 按住拖动画布 · 把格子刷成目标色'
@@ -754,7 +765,9 @@ canvas.addEventListener('pointerdown', evt => {
     return
   }
 
-  if (!state.editTool || state.editColorIdx == null) return
+  // 擦除不需要目标色；笔画 / 填充需要
+  if (!state.editTool) return
+  if (state.editTool !== 'eraser' && state.editColorIdx == null) return
 
   evt.preventDefault()
   try { canvas.setPointerCapture(evt.pointerId) } catch {}
@@ -768,12 +781,13 @@ canvas.addEventListener('pointerdown', evt => {
       state.history.pop()
       undoBtn.disabled = state.history.length === 0
     }
-  } else if (state.editTool === 'brush') {
+  } else if (state.editTool === 'brush' || state.editTool === 'eraser') {
     pushHistorySnapshot()
     state.isPainting = true
+    state.strokeValue = state.editTool === 'eraser' ? -1 : state.editColorIdx
     state.paintedThisStroke = new Set()
     const key = `${cell.gx},${cell.gy}`
-    if (paintCell(cell.gx, cell.gy, state.editColorIdx)) {
+    if (paintCell(cell.gx, cell.gy, state.strokeValue)) {
       state.paintedThisStroke.add(key)
       rerender()
     }
@@ -787,7 +801,7 @@ canvas.addEventListener('pointermove', evt => {
   const key = `${cell.gx},${cell.gy}`
   if (state.paintedThisStroke.has(key)) return
   state.paintedThisStroke.add(key)
-  if (paintCell(cell.gx, cell.gy, state.editColorIdx)) {
+  if (paintCell(cell.gx, cell.gy, state.strokeValue)) {
     rerender()
   }
 })
